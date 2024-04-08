@@ -22,7 +22,7 @@ def process_cvs(cvs):
         elif cv.filename.endswith('.docx'):
             text = extract_information_from_docx(cv)
             extracted_text.append(text)    
-        # Add handling for other file types if necessary
+       
     return extracted_text
 
 @app.route('/')
