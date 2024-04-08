@@ -2,6 +2,7 @@ from flask import Flask, request, render_template, send_file
 import pdfplumber
 import pandas as pd
 import os
+from docx import Document
 
 app = Flask(__name__)
 
@@ -18,6 +19,9 @@ def process_cvs(cvs):
         if cv.filename.endswith('.pdf'):
             text = extract_information_from_pdf(cv)
             extracted_text.append(text)
+        elif cv.filename.endswith('.docx'):
+            text = extract_information_from_docx(cv)
+            extracted_text.append(text)    
         # Add handling for other file types if necessary
     return extracted_text
 
@@ -35,6 +39,13 @@ def extract_information():
     cvs = request.files.getlist('cv_files')
     extracted_text = process_cvs(cvs)
     return export_to_excel(extracted_text)
+
+def extract_information_from_docx(docx_file):
+    text = ''
+    doc = Document(docx_file)
+    for paragraph in doc.paragraphs:
+        text += paragraph.text
+    return text
 
 if __name__ == '__main__':
     app.run(debug=True)
