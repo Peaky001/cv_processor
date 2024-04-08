@@ -4,12 +4,118 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload CVs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .upload-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input[type="file"] {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 300px;
+        }
+
+        button[type="submit"] {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid #3498db;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-    <h1>Upload CVs</h1>
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="cv_files" multiple>
-        <button type="submit">Upload</button>
-    </form>
+    <div class="upload-container">
+        <h1>Upload CVs</h1>
+        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="cv_files" multiple>
+            <button type="submit">Upload</button>
+        </form>
+        <div id="loader" class="hidden">
+            <div class="loader"></div>
+            <p>Processing...</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            // Show loader
+            document.getElementById('loader').classList.remove('hidden');
+
+            // Submit form data asynchronously using Fetch API
+            fetch('/upload', {
+                method: 'POST',
+                body: new FormData(this)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Redirect to the download link once the file is ready
+                window.location.href = '/download/' + data.excel_filename;
+
+                // Hide loader
+                document.getElementById('loader').classList.add('hidden');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Hide loader if there's an error
+                document.getElementById('loader').classList.add('hidden');
+            });
+        });
+    </script>
 </body>
 </html>

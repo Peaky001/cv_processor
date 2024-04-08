@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, send_file
+from flask import Flask, request, render_template, send_file, jsonify
 import pdfplumber
 import pandas as pd
 import os
@@ -31,14 +31,28 @@ def upload_cv():
 
 def export_to_excel(data):
     df = pd.DataFrame(data, columns=['Text'])
-    df.to_excel('cv_information.xlsx', index=False)
-    return send_file('cv_information.xlsx', as_attachment=True)
+    # Set the column width for 'Text' column
+    df['Text'] = df['Text'].apply(lambda x: ' '.join(str(x).splitlines()))  # Remove line breaks
+    excel_filename = 'cv_information.xlsx'
+    df.to_excel(excel_filename, index=False)
+    # Adjust the column width using openpyxl
+    from openpyxl import load_workbook
+    wb = load_workbook(excel_filename)
+    ws = wb.active
+    ws.column_dimensions['A'].width = 100  # Set the width of the 'Text' column
+    wb.save(excel_filename)
+    return excel_filename
 
 @app.route('/upload', methods=['POST'])
 def extract_information():
     cvs = request.files.getlist('cv_files')
     extracted_text = process_cvs(cvs)
-    return export_to_excel(extracted_text)
+    excel_filename = export_to_excel(extracted_text)
+    return jsonify({'excel_filename': excel_filename})
+
+@app.route('/download/<filename>')
+def download_file(filename):
+    return send_file(filename, as_attachment=True)
 
 def extract_information_from_docx(docx_file):
     text = ''
